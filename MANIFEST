@@ -1,0 +1,6 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/Tkx-FindBar.t
+lib/Tkx/FindBar.pm

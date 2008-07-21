@@ -36,10 +36,16 @@ INIT {
 
 __PACKAGE__->_Mega("tkx_FindBar");
 __PACKAGE__->_Config(
-	-textwidget => ['PASSIVE'],
+	-textwidget     => ['METHOD'],
+	-highlightcolor => ['METHOD'],
 );
 
 
+#-------------------------------------------------------------------------------
+# Method  : _Populate
+# Purpose : Create a new FindBar
+# Notes   : 
+#-------------------------------------------------------------------------------
 sub _Populate {
 	my ($class, $widget, $path, %opt) = @_;
 
@@ -49,12 +55,15 @@ sub _Populate {
 
 	# initialize instance data
 	my $data = $self->_data();
-	$data->{-textwidget} = delete $opt{-textwidget};  # text widget to search in
-	$data->{start }      = '1.0';                     # start index of found string
-	$data->{what}        = '';                        # entry text
-	$data->{case}        = 0;                         # case-sensitive search
-	$data->{regex}       = 0;                         # regular expression search
-	$data->{count}       = 0;                         # number of chars in found string
+	$data->{-textwidget}     = delete $opt{-textwidget};
+	$data->{-highlightcolor} = delete $opt{-highlightcolor} || '#80FF80';
+	$self->_set_hightlightcolor();
+
+	$data->{start} = '1.0';  # start index of found string
+	$data->{what}  = '';     # entry text
+	$data->{case}  = 0;      # case-sensitive search
+	$data->{regex} = 0;      # regular expression search
+	$data->{count} = 0;      # number of chars in found string
 
 
 	# populate the megawidget...
@@ -110,6 +119,58 @@ sub _Populate {
 	Tkx::bind("$self.e", '<KeyRelease>', [\&_find, Tkx::Ev('%K'), $self, 'first', 1]);
 
 	return $self;
+}
+
+
+#-------------------------------------------------------------------------------
+# Method  : _config_textwidget
+# Purpose : Handler for configure(-textwidget => <widget>)
+# Notes   : 
+#-------------------------------------------------------------------------------
+sub _config_textwidget {
+	my $self = shift;
+	my $text = shift;
+	my $data = $self->_data();
+
+	# Remove tag from previous text widget
+	if ($data->{-textwidget}) {
+		$data->{-textwidget}->tag('delete', 'highlight');
+	}
+
+	$data->{-textwidget} = $text;
+	$self->_set_hightlightcolor();
+}
+
+
+#-------------------------------------------------------------------------------
+# Method  : _config_highlightcolor
+# Purpose : Handler for configure(-highlightcolor => <widget>)
+# Notes   : 
+#-------------------------------------------------------------------------------
+sub _config_highlightcolor {
+	my $self  = shift;
+	my $color = shift;
+	my $data  = $self->_data();
+
+	$data->{-highlightcolor} = $color;
+	$self->_set_hightlightcolor();
+}
+
+
+#-------------------------------------------------------------------------------
+# Method  : _set_hightlightcolor
+# Purpose : 
+# Notes   : 
+#-------------------------------------------------------------------------------
+sub _set_hightlightcolor {
+	my $self = shift;
+	my $data = $self->_data();
+
+	return unless $data->{-textwidget};
+
+	$data->{-textwidget}->tag('configure', 'highlight',
+		-background => $data->{-highlightcolor},
+	);
 }
 
 
@@ -281,7 +342,6 @@ Tkx::FindBar - Perl Tkx extension for a "find as you type" toolbar.
    Tkx::bind($mw, '<Escape>',     sub { $findbar->hide()     } );
    Tkx::bind($mw, '<F3>',         sub { $findbar->next()     } );
    Tkx::bind($mw, '<Control-F3>', sub { $findbar->previous() } );
-   $text->tag('configure', 'highlight', -background => '#b7ffb7');
    
    Tkx::MainLoop();
 
@@ -313,5 +373,3 @@ it under the same terms as Perl itself, either Perl version 5.10.0 or,
 at your option, any later version of Perl 5 you may have available.
 
 =cut
-
-

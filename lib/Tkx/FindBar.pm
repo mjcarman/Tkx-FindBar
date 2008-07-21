@@ -191,14 +191,13 @@ sub _find {
 	my $self   = shift;  # megawidget instance
 	my $which  = shift;  # first|next|prev
 	my $fayt   = shift;  # "find as you type" call from a KeyRelease event
+	my $data   = $self->_data();
 
 	return unless defined $data->{-textwidget};  # search where?
 
 	# Ignore KeyRelease events triggered by control keys
 	return if $fayt && $ignore{$keysym};
 	#status('key = ' . $keysym);  # used for debugging the ignore list
-
-	my $data = $self->_data();
 
 	# Restart new searches at the beginning. Advance the start position for
 	# 'next' searches so we don't find the same text again.
@@ -212,7 +211,7 @@ sub _find {
 	push @how, '-nocase'    if ! $data->{case};
 
 	# Clear any results from the last search
-	$data->{-textwidget}->tag('remove', 'highlight', '0.0', 'end')
+	$data->{-textwidget}->tag('remove', 'highlight', '0.0', 'end');
 
 	# Search for text
 	# The eval{} is to catch exceptions caused by incomplete or invalid

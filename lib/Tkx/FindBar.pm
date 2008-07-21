@@ -37,7 +37,6 @@ INIT {
 __PACKAGE__->_Mega("tkx_FindBar");
 __PACKAGE__->_Config(
 	-textwidget => ['PASSIVE'],
-	-packopts   => ['PASSIVE'],
 );
 
 
@@ -50,14 +49,12 @@ sub _Populate {
 
 	# initialize instance data
 	my $data = $self->_data();
-	$data->{textwidget} = delete $opt{-textwidget};  # text widget to search in
-	$data->{packopts}   = delete $opt{-packopts};    # where/how to pack widget
-	$data->{start}      = '1.0';                     # start index of found string
-	$data->{what}       = '';                        # entry text
-	$data->{case}       = 0;                         # case-sensitive search
-	$data->{regex}      = 0;                         # regular expression search
-	$data->{visible}    = 0;                         # toolbar currently visible
-	$data->{count}      = 0;                         # number of chars in found string
+	$data->{-textwidget} = delete $opt{-textwidget};  # text widget to search in
+	$data->{start }      = '1.0';                     # start index of found string
+	$data->{what}        = '';                        # entry text
+	$data->{case}        = 0;                         # case-sensitive search
+	$data->{regex}       = 0;                         # regular expression search
+	$data->{count}       = 0;                         # number of chars in found string
 
 
 	# populate the megawidget...
@@ -104,12 +101,12 @@ sub _Populate {
 
 	$self->new_ttk__checkbutton(
 		-text      => 'Regular Expression',
-		-underline => 0,
+		-underline => 8,
 		-variable  => \$data->{regex},
 	)->g_pack(-side => 'left', -anchor => 'w');
 
 	Tkx::bind("$self.e", '<Alt-c>',      sub { $data->{case}  = ! $data->{case}  } );
-	Tkx::bind("$self.e", '<Alt-r>',      sub { $data->{regex} = ! $data->{regex} } );
+	Tkx::bind("$self.e", '<Alt-e>',      sub { $data->{regex} = ! $data->{regex} } );
 	Tkx::bind("$self.e", '<KeyRelease>', [\&_find, Tkx::Ev('%K'), $self, 'first', 1]);
 
 	return $self;
@@ -126,9 +123,9 @@ sub show {
 	my $data = $self->_data();
 	
 	# Display the find toolbar if it isn't already visible
-	unless ($data->{visible}) {
-		$self->g_pack(%{$data->{packopts}});
-		$data->{visible} = 1;
+	if ($data->{packinfo}) {
+		$self->g_pack(Tkx::SplitList($data->{packinfo}));
+		$data->{packinfo} = undef;
 	}
 
 	# Focus the entry widget and select the contents so the user can
@@ -148,12 +145,29 @@ sub hide {
 	my $data = $self->_data();
 	
 	# Clear any lingering highlights from found text
-	$data->{textwidget}->tag('remove', 'highlight', '0.0', 'end')
-		if defined $data->{textwidget};
+	$data->{-textwidget}->tag('remove', 'highlight', '0.0', 'end')
+		if defined $data->{-textwidget};
+
+	return if $data->{packinfo};  # already hidden
+
+	# Remember currrent pack options
+	$data->{packinfo} = Tkx::pack('info', $self);
+
+	# Remember current place in pack order
+	# pack('info', ...) doesn't include -before or -after so we need to
+	# synthesize them using the slave list from our pack master.
+	my ($master) = $data->{packinfo} =~ /-in (\.\w*)/;
+	my @slave    = Tkx::SplitList(Tkx::pack('slaves', $master));
+	for (my $i = 0; $i < @slave; $i++) {
+		next unless $slave[$i] eq $self->_mpath;
+		if    ($i > 0      ) { $data->{packinfo} .= " -after $slave[$i-1]"  }
+		elsif ($i < $#slave) { $data->{packinfo} .= " -before $slave[$i+1]" }
+		# else it's the only thing in the slaves!
+		last;
+	}
 
 	# Hide the find toolbar
 	Tkx::pack('forget', $self);
-	$data->{visible} = 0;
 }
 
 
@@ -178,6 +192,8 @@ sub _find {
 	my $which  = shift;  # first|next|prev
 	my $fayt   = shift;  # "find as you type" call from a KeyRelease event
 
+	return unless defined $data->{-textwidget};  # search where?
+
 	# Ignore KeyRelease events triggered by control keys
 	return if $fayt && $ignore{$keysym};
 	#status('key = ' . $keysym);  # used for debugging the ignore list
@@ -196,14 +212,14 @@ sub _find {
 	push @how, '-nocase'    if ! $data->{case};
 
 	# Clear any results from the last search
-	$data->{textwidget}->tag('remove', 'highlight', '0.0', 'end');
+	$data->{-textwidget}->tag('remove', 'highlight', '0.0', 'end')
 
 	# Search for text
 	# The eval{} is to catch exceptions caused by incomplete or invalid
 	# regular expressions when the -regex option is used. Note that we can't
 	# pre-check the regex because it's being evaluated by Tcl, not Perl, and
 	# there are subtle syntax differences.
-	my $i = eval { $data->{textwidget}->search(@how, $data->{what}, $data->{start}) };
+	my $i = eval { $data->{-textwidget}->search(@how, $data->{what}, $data->{start}) };
 
 	if ($@) {
 		# invalid regex (presumably)
@@ -215,8 +231,8 @@ sub _find {
 
 		# Highlight the match, scroll to it, and reset the start
 		# position for finding the prev/next instance
-		$data->{textwidget}->tag('add', 'highlight', $i, "$i + $data->{count} chars");
-		$data->{textwidget}->see($i);
+		$data->{-textwidget}->tag('add', 'highlight', $i, "$i + $data->{count} chars");
+		$data->{-textwidget}->see($i);
 		$data->{start} = $i;
 	}
 	else {
@@ -256,15 +272,11 @@ Tkx::FindBar - Perl Tkx extension for a "find as you type" toolbar.
    my $text    = $mw->new_text();
    my $findbar = $mw->new_tkx_FindBar(
        -textwidget => $text,
-       -packopts   => {
-           -after  => $text,
-           -side   => 'bottom',
-           -anchor => 'w',
-       },
    );
    
-   $text->g_pack(-side => 'top');
-   # Don't pack $findbar, use show() instead.
+   $text->g_pack();
+   $findbar->g_pack();
+   $findbar->hide();  # remove until requested by user
    
    Tkx::bind($mw, '<Control-f>',  sub { $findbar->show()     } );
    Tkx::bind($mw, '<Escape>',     sub { $findbar->hide()     } );

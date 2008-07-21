@@ -44,7 +44,7 @@ __PACKAGE__->_Config(
 #-------------------------------------------------------------------------------
 # Method  : _Populate
 # Purpose : Create a new FindBar
-# Notes   : 
+# Notes   :
 #-------------------------------------------------------------------------------
 sub _Populate {
 	my ($class, $widget, $path, %opt) = @_;
@@ -125,7 +125,7 @@ sub _Populate {
 #-------------------------------------------------------------------------------
 # Method  : _config_textwidget
 # Purpose : Handler for configure(-textwidget => <widget>)
-# Notes   : 
+# Notes   :
 #-------------------------------------------------------------------------------
 sub _config_textwidget {
 	my $self = shift;
@@ -145,7 +145,7 @@ sub _config_textwidget {
 #-------------------------------------------------------------------------------
 # Method  : _config_highlightcolor
 # Purpose : Handler for configure(-highlightcolor => <widget>)
-# Notes   : 
+# Notes   :
 #-------------------------------------------------------------------------------
 sub _config_highlightcolor {
 	my $self  = shift;
@@ -159,8 +159,8 @@ sub _config_highlightcolor {
 
 #-------------------------------------------------------------------------------
 # Method  : _set_hightlightcolor
-# Purpose : 
-# Notes   : 
+# Purpose :
+# Notes   :
 #-------------------------------------------------------------------------------
 sub _set_hightlightcolor {
 	my $self = shift;
@@ -177,12 +177,12 @@ sub _set_hightlightcolor {
 #---------------------------------------------------------------------------
 # Method  : show
 # Purpose : Display the find toolbar
-# Notes   : 
+# Notes   :
 #---------------------------------------------------------------------------
 sub show {
 	my $self = shift;
 	my $data = $self->_data();
-	
+
 	# Display the find toolbar if it isn't already visible
 	if ($data->{packinfo}) {
 		$self->g_pack(Tkx::SplitList($data->{packinfo}));
@@ -199,12 +199,12 @@ sub show {
 #---------------------------------------------------------------------------
 # Method  : hide
 # Purpose : Hide the find toolbar
-# Notes   : 
+# Notes   :
 #---------------------------------------------------------------------------
 sub hide {
 	my $self = shift;
 	my $data = $self->_data();
-	
+
 	# Clear any lingering highlights from found text
 	$data->{-textwidget}->tag('remove', 'highlight', '0.0', 'end')
 		if defined $data->{-textwidget};
@@ -235,7 +235,7 @@ sub hide {
 #---------------------------------------------------------------------------
 # Method  : next/previous
 # Purpose : public wrappers for specific searches
-# Notes   : 
+# Notes   :
 #---------------------------------------------------------------------------
 sub next     { _find('', $_[0], 'next', 0) }
 sub previous { _find('', $_[0], 'prev', 0) }
@@ -244,7 +244,7 @@ sub previous { _find('', $_[0], 'prev', 0) }
 #-------------------------------------------------------------------------------
 # Subroutine : _find
 # Purpose    : Search in text widget
-# Notes      : Private sub, NOT A METHOD because the keysym must be the 
+# Notes      : Private sub, NOT A METHOD because the keysym must be the
 #              first arg for Tkx::Ev to work when binding.
 #-------------------------------------------------------------------------------
 sub _find {
@@ -321,48 +321,73 @@ __END__
 
 =head1 NAME
 
-Tkx::FindBar - Perl Tkx extension for a "find as you type" toolbar.
+Tkx::FindBar - Perl Tkx extension for an incremental search toolbar.
 
 =head1 SYNOPSIS
 
    use Tkx;
    use Tkx::FindBar;
-   
+
    my $mw      = Tkx::widget->new('.');
    my $text    = $mw->new_text();
-   my $findbar = $mw->new_tkx_FindBar(
-       -textwidget => $text,
-   );
-   
+   my $findbar = $mw->new_tkx_FindBar(-textwidget => $text);
+
    $text->g_pack();
    $findbar->g_pack();
    $findbar->hide();  # remove until requested by user
-   
+
    Tkx::bind($mw, '<Control-f>',  sub { $findbar->show()     } );
    Tkx::bind($mw, '<Escape>',     sub { $findbar->hide()     } );
    Tkx::bind($mw, '<F3>',         sub { $findbar->next()     } );
    Tkx::bind($mw, '<Control-F3>', sub { $findbar->previous() } );
-   
+
    Tkx::MainLoop();
 
 =head1 DESCRIPTION
 
-Stub documentation for Tkx::FindBar, created by h2xs. It looks like the
-author of the extension was negligent enough to leave the stub
-unedited.
+Tkx::FindBar is a Tkx megawidget that provides a toolbar for searching 
+in a text widget. The search is done incrementally (also known as "find 
+as you type.") The toolbar may be hidden and shown on demand. It uses 
+tiled (themed) widgets.
 
-Blah blah blah.
+Tkx::FindBar was inspired by the great find toolbar in Mozilla Firefox.
 
-=head1 SEE ALSO
+=head1 WIDGET-SPECIFIC OPTIONS
 
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
+=head2 C<-textwidget =E<gt> I<widget>>
+
+Defines the text widget to search in.
+
+=head2 C<-highlightcolor =E<gt> I<color>>
+
+Defines the background color for highlighting found text.
+
+=head1 METHODS
+
+=head2 C<hide>
+
+Hides the FindBar widget.
+
+=head2 C<show>
+
+Shows the FindBar widget.
+
+=head2 C<previous>
+
+Finds the previous instance of the search text. (Searches backwards.)
+
+=head2 C<next>
+
+Finds the next instance of the search text. (Searches forwards.)
+
+=head1 BUGS
+
+The C<show> and C<hide> methods only work with the L<pack> geometry
+manager. The grid and place geometry managers are not supported.
 
 =head1 AUTHOR
 
-Michael Carman, E<lt>mjcarman@pause.orgE<gt>
+Michael Carman, E<lt>mjcarman@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
@@ -371,5 +396,12 @@ Copyright (C) 2008 by Michael Carman
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.10.0 or,
 at your option, any later version of Perl 5 you may have available.
+
+The icons are Copyright (C) the L<Tango Desktop
+Project|http://tango.freedesktop.org/Tango_Desktop_Project>. They are
+used under the terms of the L<Creative Commons Attribution-Share Alike
+License|http://creativecommons.org/licenses/by-sa/2.5/>. They're a heck
+of a lot better than anything I could come up with, so I'm grateful for
+being able to use them. Thanks, guys!
 
 =cut

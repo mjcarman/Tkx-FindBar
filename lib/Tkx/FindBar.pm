@@ -91,7 +91,7 @@ sub _Populate {
 		-image     => 'go-down16',
 		-takefocus => 0,
 		-style     => 'Toolbutton',
-		-command   => [\&_find, Tkx::Ev('%K'), $self, 'next', 0],
+		-command   => [\&next, $self],
 	)->g_pack(-side => 'left', -anchor => 'w');
 
 	$self->new_ttk__button(
@@ -99,7 +99,7 @@ sub _Populate {
 		-image     => 'go-up16',
 		-takefocus => 0,
 		-style     => 'Toolbutton',
-		-command   => [\&_find, Tkx::Ev('%K'), $self, 'prev', 0],
+		-command   => [\&previous, $self],
 	)->g_pack(-side => 'left', -anchor => 'w');
 
 	$self->new_ttk__checkbutton(
@@ -233,12 +233,13 @@ sub hide {
 
 
 #---------------------------------------------------------------------------
-# Method  : next/previous
+# Method  : first/next/previous
 # Purpose : public wrappers for specific searches
 # Notes   :
 #---------------------------------------------------------------------------
-sub next     { _find('', $_[0], 'next', 0) }
-sub previous { _find('', $_[0], 'prev', 0) }
+sub first    { _find('', $_[0], 'first', 0) }
+sub next     { _find('', $_[0], 'next',  0) }
+sub previous { _find('', $_[0], 'prev',  0) }
 
 
 #-------------------------------------------------------------------------------
@@ -372,13 +373,17 @@ Hides the FindBar widget.
 
 Shows the FindBar widget.
 
-=head2 C<previous>
+=head2 C<first>
 
-Finds the previous instance of the search text. (Searches backwards.)
+Finds the first instance of the search text.
 
 =head2 C<next>
 
 Finds the next instance of the search text. (Searches forwards.)
+
+=head2 C<previous>
+
+Finds the previous instance of the search text. (Searches backwards.)
 
 =head1 BUGS
 

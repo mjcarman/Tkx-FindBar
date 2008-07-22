@@ -1,15 +1,92 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl Tkx-FindBar.t'
+use strict;
+use warnings;
+use Tkx;
+use Test::More tests => 14;
 
-#########################
-
-# change 'tests => 1' to 'tests => last_test_to_print';
-
-use Test::More tests => 1;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
 BEGIN { use_ok('Tkx::FindBar') };
 
-#########################
+my $mw = Tkx::widget->new('.');
+$mw->g_wm_title('Tkx::FindBar Test');
+Tkx::bind($mw, '<Control-w>', sub { exit });
 
-# Insert your test code below, the Test::More module is use()ed here so read
-# its man page ( perldoc Test::More ) for help writing this test script.
+my $text1   = $mw->new_text(-wrap => 'word', -height => 5);
+my $text2   = $mw->new_text(-wrap => 'word', -height => 5);
+my $findbar = $mw->new_tkx_FindBar();
 
+$text1->g_pack();
+$findbar->g_pack(-anchor => 'w');
+$text2->g_pack();
+
+$text1->insert('end', <<EOT);
+Now is the time for all good men to come to the aid of their country.
+EOT
+
+$text2->insert('end', <<EOT);
+The quick brown fox jumped over the lazy dog.
+EOT
+
+my @order = Tkx::SplitList(Tkx::pack('slaves', $mw));
+my @exp   = grep { $_ ne $findbar } @order;
+
+$findbar->hide();
+is_deeply([Tkx::SplitList(Tkx::pack('slaves', $mw))], \@exp, "hide() removes from pack order");
+
+$findbar->show();
+is_deeply([Tkx::SplitList(Tkx::pack('slaves', $mw))], \@order, "show() restores original location");
+
+$findbar->configure(-textwidget => $text1);
+
+# Why can't I generate key events and have them show up in the entry, trigger
+# FAYT, etc.? Grr...
+#Tkx::event('generate', $mw, '<Key-t>');
+#Tkx::event('generate', $mw, '<Key-h>');
+# Screw it. Forceful hacks follow
+$findbar->_data->{what} = 'th';
+
+$findbar->first();
+is($text2->tag('ranges', 'highlight'), '',        'text widget 2 not searched');
+is($text1->tag('ranges', 'highlight'), '1.7 1.9', 'highlight range - first()');
+
+$findbar->next();
+is($text1->tag('ranges', 'highlight'), '1.44 1.46', 'highlight range - next()');
+
+$findbar->previous();
+is($text1->tag('ranges', 'highlight'), '1.7 1.9', 'highlight range - previous()');
+
+$findbar->_data->{what} = 'quick';
+$findbar->first();
+is($text1->tag('ranges', 'highlight'), '', 'highlight range - text not found');
+
+$findbar->configure(-textwidget => $text2);
+$findbar->_data->{what} = 'th';
+$findbar->first();
+
+is($text1->tag('ranges', 'highlight'), '',        'text widget 1 not searched');
+is($text2->tag('ranges', 'highlight'), '1.0 1.2', 'highlight range - after text widget change');
+
+$findbar->_data->{case} = 0;
+$findbar->_data->{what} = 'Th';
+$findbar->first();
+$findbar->next();
+is($text2->tag('ranges', 'highlight'), '1.32 1.34', 'case-insensitive search');
+
+$findbar->_data->{case} = 1;
+$findbar->_data->{what} = 'Th';
+$findbar->first();
+$findbar->next();
+is($text2->tag('ranges', 'highlight'), '1.0 1.2', 'case-sensitive search');
+
+$findbar->_data->{case}  = 0;
+$findbar->_data->{regex} = 1;
+$findbar->_data->{what} = 'T.e';
+
+$findbar->first();
+$findbar->next();
+is($text2->tag('ranges', 'highlight'), '1.32 1.35', 'regex search');
+
+$findbar->_data->{case}  = 1;
+$findbar->first();
+$findbar->next();
+is($text2->tag('ranges', 'highlight'), '1.0 1.3', 'case-sensitive regex search');

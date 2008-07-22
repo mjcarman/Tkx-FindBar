@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Tkx;
-use Test::More tests => 14;
+use Test::More tests => 16;
 
 use FindBin;
 use lib "$FindBin::Bin/../lib";
@@ -37,6 +37,11 @@ $findbar->show();
 is_deeply([Tkx::SplitList(Tkx::pack('slaves', $mw))], \@order, "show() restores original location");
 
 $findbar->configure(-textwidget => $text1);
+$findbar->configure(-highlightcolor => 'red');
+
+is($findbar->cget(-textwidget), $text1, 'configure/cget for -textwidget');
+is($findbar->cget(-highlightcolor), 'red', 'configure/cget for -highlightcolor');
+
 
 # Why can't I generate key events and have them show up in the entry, trigger
 # FAYT, etc.? Grr...

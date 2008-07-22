@@ -132,13 +132,15 @@ sub _config_textwidget {
 	my $text = shift;
 	my $data = $self->_data();
 
-	# Remove tag from previous text widget
-	if ($data->{-textwidget}) {
-		$data->{-textwidget}->tag('delete', 'highlight');
+	if (defined $text) {
+		# Remove tag from previous text widget
+		$data->{-textwidget}->tag('delete', 'highlight') if $data->{-textwidget};
+
+		$data->{-textwidget} = $text;
+		$self->_set_hightlightcolor();
 	}
 
-	$data->{-textwidget} = $text;
-	$self->_set_hightlightcolor();
+	return $data->{-textwidget};
 }
 
 
@@ -152,8 +154,12 @@ sub _config_highlightcolor {
 	my $color = shift;
 	my $data  = $self->_data();
 
-	$data->{-highlightcolor} = $color;
-	$self->_set_hightlightcolor();
+	if (defined $color) {
+		$data->{-highlightcolor} = $color;
+		$self->_set_hightlightcolor();
+	}
+
+	return $data->{-highlightcolor};
 }
 
 

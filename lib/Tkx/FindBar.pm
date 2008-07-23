@@ -191,7 +191,7 @@ sub show {
 	# start typing immediately
 	Tkx::focus("$self.e");
 	Tkx::eval("$self.e", 'selection', 'range', 0, 'end');
-	
+
 	$self->first();
 }
 
@@ -296,7 +296,7 @@ sub _find {
 		# text not found
 		Tkx::eval("$self.e", 'configure', -foreground => '#808080');
 	}
-	
+
 	# We only wanted to search, not prevent text entry.
 	return 1;
 }
@@ -321,7 +321,7 @@ __END__
 
 =head1 NAME
 
-Tkx::FindBar - Perl Tkx extension for an incremental search toolbar.
+Tkx::FindBar - Perl Tkx extension for an incremental search toolbar
 
 =head1 SYNOPSIS
 
@@ -336,6 +336,7 @@ Tkx::FindBar - Perl Tkx extension for an incremental search toolbar.
    $findbar->g_pack();
    $findbar->hide();  # remove until requested by user
 
+   # Bindings to display and hide toolbar and navigate matches.
    Tkx::bind($mw, '<Control-f>',  sub { $findbar->show()     } );
    Tkx::bind($mw, '<Escape>',     sub { $findbar->hide()     } );
    Tkx::bind($mw, '<F3>',         sub { $findbar->next()     } );
@@ -345,10 +346,11 @@ Tkx::FindBar - Perl Tkx extension for an incremental search toolbar.
 
 =head1 DESCRIPTION
 
-Tkx::FindBar is a Tkx megawidget that provides a toolbar for searching 
-in a text widget. The search is done incrementally (also known as "find 
-as you type.") The toolbar may be hidden and shown on demand. It uses 
-tiled (themed) widgets.
+Tkx::FindBar is a Tkx megawidget that provides a toolbar for searching
+in a text widget. Using a toolbar for a search UI is much less obtrusive
+than a dialog box. The search is done incrementally (also known as "find
+as you type"). The toolbar may be hidden and shown as needed. It uses
+tiled (themed) widgets to acheive a native appearance.
 
 Tkx::FindBar was inspired by the great find toolbar in Mozilla Firefox.
 
@@ -356,11 +358,12 @@ Tkx::FindBar was inspired by the great find toolbar in Mozilla Firefox.
 
 =head2 C<-textwidget =E<gt> I<widget>>
 
-Defines the text widget to search in.
+Defines the widget to search in. This must be a text widget (or act like 
+one).
 
 =head2 C<-highlightcolor =E<gt> I<color>>
 
-Defines the background color for highlighting found text.
+Defines the background color used to highlight found text.
 
 =head1 METHODS
 
@@ -388,6 +391,8 @@ Finds the previous instance of the search text. (Searches backwards.)
 
 The C<show> and C<hide> methods only work with the L<pack> geometry
 manager. The grid and place geometry managers are not supported.
+
+There's no support for configuring subwidgets.
 
 =head1 AUTHOR
 

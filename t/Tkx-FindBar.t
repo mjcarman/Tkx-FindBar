@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Tkx;
-use Test::More tests => 16;
+use Test::More tests => 19;
 
 use FindBin;
 use lib "$FindBin::Bin/../lib";
@@ -95,3 +95,15 @@ $findbar->_data->{case}  = 1;
 $findbar->first();
 $findbar->next();
 is($text2->tag('ranges', 'highlight'), '1.0 1.3', 'case-sensitive regex search');
+
+$findbar->_data->{what} = 'the';
+$findbar->_data->{case}  = 0;
+$findbar->_data->{regex} = 0;
+$findbar->first();
+$findbar->next();
+is($text2->tag('ranges', 'highlight'), '1.32 1.35', 'setup for hide/show test');
+$findbar->hide();
+is($text2->tag('ranges', 'highlight'), '', 'hide() removes highlight');
+
+$findbar->show();
+is($text2->tag('ranges', 'highlight'), '1.0 1.3', 'show() does "first" search');

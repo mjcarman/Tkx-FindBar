@@ -1,16 +1,8 @@
-Tkx-FindBar version 0.01
-========================
+Tkx-FindBar
+===========
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
-
-A README file is required for CPAN modules since CPAN extracts the
-README file from a module distribution so that people browsing the
-archive can use it get an idea of the modules uses. It is usually a
-good idea to provide version information here so that people can
-decide whether fixes for the module are worth downloading.
+This module defines a Perl Tkx megawidget that provides a toolbar for 
+incremental searching of a Tk text widget.
 
 INSTALLATION
 
@@ -23,18 +15,20 @@ To install this module type the following:
 
 DEPENDENCIES
 
-This module requires these other modules and libraries:
-
-  blah blah blah
+  Perl 5.006
+  Tkx
 
 COPYRIGHT AND LICENCE
 
-Put the correct copyright and licence information here.
-
-Copyright (C) 2008 by A. U. Thor
+Copyright (C) 2008 by Michael Carman
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.10.0 or,
 at your option, any later version of Perl 5 you may have available.
 
-
+The icons are Copyright (C) the L<Tango Desktop
+Project|http://tango.freedesktop.org/Tango_Desktop_Project>. They are
+used under the terms of the L<Creative Commons Attribution-Share Alike
+License|http://creativecommons.org/licenses/by-sa/2.5/>. They're a heck
+of a lot better than anything I could come up with, so I'm grateful for
+being able to use them. Thanks, guys!

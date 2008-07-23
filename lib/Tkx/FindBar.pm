@@ -8,15 +8,6 @@ Tkx::package_require('tile');
 
 our $VERSION = '0.01';
 
-# keys to ignore during Find As You Type
-my %ignore = map { $_ => 1 } qw(
-	F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12
-	Control_L Control_R Shift_L Shift_R Alt_L Alt_R
-	Caps_Lock Num_Lock Tab Break Escape	Return
-	Insert Delete Home End Prior Next
-	Up Down Left Right
-);
-
 # load images for toolbar buttons
 INIT {
 	eval { Tkx::package_require('img::png') };
@@ -82,8 +73,10 @@ sub _Populate {
 	)->g_pack(-side => 'left', -anchor => 'w');
 
 	$self->new_ttk__entry(
-		-name         => 'e',
-		-textvariable => \$data->{what},
+		-name            => 'e',
+		-textvariable    => \$data->{what},
+		-validate        => 'key',
+		-validatecommand => [\&_find, Tkx::Ev('%P'), $self, 'first'],
 	)->g_pack(-side => 'left', -anchor => 'w');
 
 	$self->new_ttk__button(
@@ -116,7 +109,6 @@ sub _Populate {
 
 	Tkx::bind("$self.e", '<Alt-c>',      sub { $data->{case}  = ! $data->{case}  } );
 	Tkx::bind("$self.e", '<Alt-e>',      sub { $data->{regex} = ! $data->{regex} } );
-	Tkx::bind("$self.e", '<KeyRelease>', [\&_find, Tkx::Ev('%K'), $self, 'first', 1]);
 
 	return $self;
 }
@@ -199,6 +191,8 @@ sub show {
 	# start typing immediately
 	Tkx::focus("$self.e");
 	Tkx::eval("$self.e", 'selection', 'range', 0, 'end');
+	
+	$self->first();
 }
 
 
@@ -243,29 +237,25 @@ sub hide {
 # Purpose : public wrappers for specific searches
 # Notes   :
 #---------------------------------------------------------------------------
-sub first    { _find('', $_[0], 'first', 0) }
-sub next     { _find('', $_[0], 'next',  0) }
-sub previous { _find('', $_[0], 'prev',  0) }
+sub first    { _find($_[0]->_data->{what}, $_[0], 'first') }
+sub next     { _find($_[0]->_data->{what}, $_[0], 'next' ) }
+sub previous { _find($_[0]->_data->{what}, $_[0], 'prev' ) }
 
 
 #-------------------------------------------------------------------------------
 # Subroutine : _find
 # Purpose    : Search in text widget
-# Notes      : Private sub, NOT A METHOD because the keysym must be the
-#              first arg for Tkx::Ev to work when binding.
+# Notes      : Private sub, NOT A METHOD because the text must be the first arg
+#              for Tkx::Ev to work when binding.
 #-------------------------------------------------------------------------------
 sub _find {
-	my $keysym = shift;  # which key was pressed
-	my $self   = shift;  # megawidget instance
-	my $which  = shift;  # first|next|prev
-	my $fayt   = shift;  # "find as you type" call from a KeyRelease event
-	my $data   = $self->_data();
+	my $what   = shift;                 # proposed text (Tcl %P)
+	my $self   = shift;                 # megawidget instance
+	my $which  = shift;                 # first|next|prev
+	my $data   = $self->_data();        # instance data
+	my $where  = $data->{-textwidget};  # where to search
 
-	return unless defined $data->{-textwidget};  # search where?
-
-	# Ignore KeyRelease events triggered by control keys
-	return if $fayt && $ignore{$keysym};
-	#status('key = ' . $keysym);  # used for debugging the ignore list
+	return unless defined $where;
 
 	# Restart new searches at the beginning. Advance the start position for
 	# 'next' searches so we don't find the same text again.
@@ -279,14 +269,14 @@ sub _find {
 	push @how, '-nocase'    if ! $data->{case};
 
 	# Clear any results from the last search
-	$data->{-textwidget}->tag('remove', 'highlight', '0.0', 'end');
+	$where->tag('remove', 'highlight', '0.0', 'end');
 
 	# Search for text
 	# The eval{} is to catch exceptions caused by incomplete or invalid
 	# regular expressions when the -regex option is used. Note that we can't
 	# pre-check the regex because it's being evaluated by Tcl, not Perl, and
 	# there are subtle syntax differences.
-	my $i = eval { $data->{-textwidget}->search(@how, $data->{what}, $data->{start}) };
+	my $i = eval { $where->search(@how, $what, $data->{start}) };
 
 	if ($@) {
 		# invalid regex (presumably)
@@ -298,14 +288,17 @@ sub _find {
 
 		# Highlight the match, scroll to it, and reset the start
 		# position for finding the prev/next instance
-		$data->{-textwidget}->tag('add', 'highlight', $i, "$i + $data->{count} chars");
-		$data->{-textwidget}->see($i);
+		$where->tag('add', 'highlight', $i, "$i + $data->{count} chars");
+		$where->see($i);
 		$data->{start} = $i;
 	}
 	else {
 		# text not found
 		Tkx::eval("$self.e", 'configure', -foreground => '#808080');
 	}
+	
+	# We only wanted to search, not prevent text entry.
+	return 1;
 }
 
 

@@ -6,7 +6,7 @@ use base qw(Tkx::widget Tkx::MegaConfig);
 
 Tkx::package_require('tile');
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 # load images for toolbar buttons
 INIT {
@@ -29,6 +29,19 @@ __PACKAGE__->_Mega("tkx_FindBar");
 __PACKAGE__->_Config(
 	-textwidget     => ['METHOD'],
 	-highlightcolor => ['METHOD'],
+);
+
+
+my %hidesub = (
+	pack  => \&_hide_pack,
+	grid  => \&_hide_grid,
+	place => \&_hide_place,
+);
+
+my %showsub = (
+	pack  => \&_show_pack,
+	grid  => \&_show_grid,
+	place => \&_show_place,
 );
 
 
@@ -172,6 +185,21 @@ sub _set_hightlightcolor {
 }
 
 
+#-------------------------------------------------------------------------------
+# Method  : _geometry_manager
+# Purpose : Determine the geometry manager used to manage widget
+# Notes   : 
+#-------------------------------------------------------------------------------
+sub _geometry_manager {
+	my $self = shift;
+
+	eval { Tkx::pack('info',  $self) } and return 'pack';
+	eval { Tkx::grid('info',  $self) } and return 'grid';
+#	eval { Tkx::place('info', $self) } and return 'place';
+	return;
+}
+
+
 #---------------------------------------------------------------------------
 # Method  : show
 # Purpose : Display the find toolbar
@@ -182,9 +210,9 @@ sub show {
 	my $data = $self->_data();
 
 	# Display the find toolbar if it isn't already visible
-	if ($data->{packinfo}) {
-		$self->g_pack(Tkx::SplitList($data->{packinfo}));
-		$data->{packinfo} = undef;
+	if ($data->{hidden}) {
+		$showsub{$data->{gm}}->($self);
+		$data->{hidden} = 0;
 	}
 
 	# Focus the entry widget and select the contents so the user can
@@ -194,6 +222,10 @@ sub show {
 
 	$self->first();
 }
+
+sub _show_pack  { $_[0]->g_pack(Tkx::SplitList($_[0]->_data->{gminfo})) }
+sub _show_grid  { $_[0]->g_grid() }
+sub _show_place { }
 
 
 #---------------------------------------------------------------------------
@@ -205,31 +237,47 @@ sub hide {
 	my $self = shift;
 	my $data = $self->_data();
 
+	return if $data->{hidden};
+
 	# Clear any lingering highlights from found text
 	$data->{-textwidget}->tag('remove', 'highlight', '0.0', 'end')
 		if defined $data->{-textwidget};
 
-	return if $data->{packinfo};  # already hidden
+	my $gm = $self->_geometry_manager();
+
+	return unless $gm;  # unsupported geometry manager!
+
+	$data->{gm} = $gm;
+	$hidesub{$gm}->($self);
+	$data->{hidden} = 1;
+}
+
+sub _hide_pack {
+	my $self = shift;
+	my $data = $self->_data();
 
 	# Remember currrent pack options
-	$data->{packinfo} = Tkx::pack('info', $self);
+	$data->{gminfo} = Tkx::pack('info', $self);
 
 	# Remember current place in pack order
 	# pack('info', ...) doesn't include -before or -after so we need to
 	# synthesize them using the slave list from our pack master.
-	my ($master) = $data->{packinfo} =~ /-in (\.\w*)/;
+	my ($master) = $data->{gminfo} =~ /-in (\.\w*)/;
 	my @slave    = Tkx::SplitList(Tkx::pack('slaves', $master));
 	for (my $i = 0; $i < @slave; $i++) {
 		next unless $slave[$i] eq $self->_mpath;
-		if    ($i > 0      ) { $data->{packinfo} .= " -after $slave[$i-1]"  }
-		elsif ($i < $#slave) { $data->{packinfo} .= " -before $slave[$i+1]" }
+		if    ($i > 0      ) { $data->{gminfo} .= " -after $slave[$i-1]"  }
+		elsif ($i < $#slave) { $data->{gminfo} .= " -before $slave[$i+1]" }
 		# else it's the only thing in the slaves!
 		last;
 	}
 
-	# Hide the find toolbar
 	Tkx::pack('forget', $self);
 }
+
+# grid remove remembers options for later redisplay :D
+sub _hide_grid  { Tkx::grid('remove', $_[0]) }
+sub _hide_place {}
 
 
 #---------------------------------------------------------------------------
@@ -255,7 +303,7 @@ sub _find {
 	my $data   = $self->_data();        # instance data
 	my $where  = $data->{-textwidget};  # where to search
 
-	return unless defined $where;
+	return 1 unless defined $where;
 
 	# Restart new searches at the beginning. Advance the start position for
 	# 'next' searches so we don't find the same text again.
@@ -389,8 +437,8 @@ Finds the previous instance of the search text. (Searches backwards.)
 
 =head1 BUGS
 
-The C<show> and C<hide> methods only work with the L<pack> geometry
-manager. The grid and place geometry managers are not supported.
+The C<show> and C<hide> methods don't work with the L<place> geometry
+manager. (The pack and grid geometry managers are supported.)
 
 There's no support for configuring subwidgets.
 

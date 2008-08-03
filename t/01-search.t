@@ -1,16 +1,10 @@
 use strict;
 use warnings;
 use Tkx;
-use Test::More tests => 19;
+use Tkx::FindBar;
+use Test::More tests => 16;
 
-use FindBin;
-use lib "$FindBin::Bin/../lib";
-BEGIN { use_ok('Tkx::FindBar') };
-
-my $mw = Tkx::widget->new('.');
-$mw->g_wm_title('Tkx::FindBar Test');
-Tkx::bind($mw, '<Control-w>', sub { exit });
-
+my $mw      = Tkx::widget->new('.');
 my $text1   = $mw->new_text(-wrap => 'word', -height => 5);
 my $text2   = $mw->new_text(-wrap => 'word', -height => 5);
 my $findbar = $mw->new_tkx_FindBar();
@@ -26,15 +20,6 @@ EOT
 $text2->insert('end', <<EOT);
 The quick brown fox jumped over the lazy dog.
 EOT
-
-my @order = Tkx::SplitList(Tkx::pack('slaves', $mw));
-my @exp   = grep { $_ ne $findbar } @order;
-
-$findbar->hide();
-is_deeply([Tkx::SplitList(Tkx::pack('slaves', $mw))], \@exp, "hide() removes from pack order");
-
-$findbar->show();
-is_deeply([Tkx::SplitList(Tkx::pack('slaves', $mw))], \@order, "show() restores original location");
 
 $findbar->configure(-textwidget => $text1);
 $findbar->configure(-highlightcolor => 'red');

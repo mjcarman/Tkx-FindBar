@@ -2,5 +2,8 @@ Changes
 Makefile.PL
 MANIFEST
 README
-t/Tkx-FindBar.t
+t/00-Tkx-Findbar.t
+t/01-search.t
+t/02-pack.t
+t/03-grid.t
 lib/Tkx/FindBar.pm

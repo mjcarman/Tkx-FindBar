@@ -4,29 +4,7 @@ use warnings;
 use Tkx;
 use base qw(Tkx::widget Tkx::MegaConfig);
 
-our $VERSION = '0.04';
-
-my $tile_available;
-
-INIT {
-	# determine availability of themed widgets
-	$tile_available = eval { Tkx::package_require('tile') };
-
-	# load images for toolbar buttons
-	eval { Tkx::package_require('img::png') };
-	my $icofmt = $@ ? 'gif89' : 'png';
-
-	while (<DATA>) {
-		next if /^#/;
-		next if /^\s*$/;
-		last if /^__END__$/;
-		chomp;
-
-		my ($name, $fmt, $data) = (split /:/)[0,1,4];
-		next unless $fmt eq $icofmt;
-		Tkx::image('create', 'photo', $name, -data => $data);
-	}
-}
+our $VERSION = '0.05';
 
 __PACKAGE__->_Mega("tkx_FindBar");
 __PACKAGE__->_Config(
@@ -34,6 +12,8 @@ __PACKAGE__->_Config(
 	-highlightcolor => ['METHOD'],
 );
 
+my $initialized;
+my $tile_available;
 
 my %hidesub = (
 	pack  => \&_hide_pack,
@@ -49,6 +29,33 @@ my %showsub = (
 
 
 #-------------------------------------------------------------------------------
+# Subroutine : _ClassInit
+# Purpose    : Perform class initialization.
+# Notes      : 
+#-------------------------------------------------------------------------------
+sub _ClassInit {
+	# determine availability of themed widgets
+	$tile_available = eval { Tkx::package_require('tile') };
+
+	# load images for toolbar buttons
+	my $icofmt = eval { Tkx::package_require('img::png') } ? 'png' : 'gif89';
+
+	while (<DATA>) {
+		next if /^#/;
+		next if /^\s*$/;
+		last if /^__END__$/;
+		chomp;
+
+		my ($name, $fmt, $data) = (split /:/)[0,1,4];
+		next unless $fmt eq $icofmt;
+		Tkx::image('create', 'photo', $name, -data => $data);
+	}
+
+	$initialized++;
+}
+
+
+#-------------------------------------------------------------------------------
 # Method  : _Populate
 # Purpose : Create a new FindBar
 # Notes   :
@@ -58,6 +65,9 @@ sub _Populate {
 	my $widget = shift;
 	my $path   = shift;
 	my %opt    = (-tile => 1, @_);
+
+	# This doesn't get called automatically. Don't know who's to blame.
+	_ClassInit() unless $initialized;
 
 	# create the megawidget
 	my $self = ($tile_available && $opt{-tile})
@@ -451,10 +461,10 @@ Tkx::FindBar - Perl Tkx extension for an incremental search toolbar
    $findbar->hide();  # remove until requested by user
 
    # Bindings to display and hide toolbar and navigate matches.
-   Tkx::bind($mw, '<Control-f>',  sub { $findbar->show()     } );
-   Tkx::bind($mw, '<Escape>',     sub { $findbar->hide()     } );
-   Tkx::bind($mw, '<F3>',         sub { $findbar->next()     } );
-   Tkx::bind($mw, '<Control-F3>', sub { $findbar->previous() } );
+   $mw->g_bind('<Control-f>',  sub { $findbar->show()     } );
+   $mw->g_bind('<Escape>',     sub { $findbar->hide()     } );
+   $mw->g_bind('<F3>',         sub { $findbar->next()     } );
+   $mw->g_bind('<Control-F3>', sub { $findbar->previous() } );
 
    Tkx::MainLoop();
 
@@ -527,11 +537,11 @@ This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.10.0 or,
 at your option, any later version of Perl 5 you may have available.
 
-The icons are Copyright (C) the L<Tango Desktop
-Project|http://tango.freedesktop.org/Tango_Desktop_Project>. They are
-used under the terms of the L<Creative Commons Attribution-Share Alike
-License|http://creativecommons.org/licenses/by-sa/2.5/>. They're a heck
-of a lot better than anything I could come up with, so I'm grateful for
-being able to use them. Thanks, guys!
+The icons are Copyright (C) the Tango Desktop Project 
+[L<http://tango.freedesktop.org/Tango_Desktop_Project>]. They are used 
+under the terms of the Creative Commons Attribution-Share Alike License 
+[L<http://creativecommons.org/licenses/by-sa/2.5/>]. They're a heck of a 
+lot better than anything I could come up with, so I'm grateful for being 
+able to use them. Thanks, guys!
 
 =cut

@@ -1,5 +1,10 @@
 Revision history for Perl extension Tkx::FindBar.
 
+0.04  8/3/2008 7:33:06 PM
+	- Reset search when case or regex setting changed.
+	- Test suite no longer bails out if tile isn't available.
+	- Tile *really* isn't required anymore. :O
+
 0.03  8/3/2008 7:12:02 PM
 	- Degrade gracefully to use standard widgets if tile is not available.
 

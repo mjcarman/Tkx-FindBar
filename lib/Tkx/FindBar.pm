@@ -6,10 +6,15 @@ use base qw(Tkx::widget Tkx::MegaConfig);
 
 Tkx::package_require('tile');
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
-# load images for toolbar buttons
+my $tile_available;
+
 INIT {
+	# determine availability of themed widgets
+	$tile_available = eval { Tkx::package_require('tile') };
+
+	# load images for toolbar buttons
 	eval { Tkx::package_require('img::png') };
 	my $icofmt = $@ ? 'gif89' : 'png';
 
@@ -51,7 +56,10 @@ my %showsub = (
 # Notes   :
 #-------------------------------------------------------------------------------
 sub _Populate {
-	my ($class, $widget, $path, %opt) = @_;
+	my $class  = shift;
+	my $widget = shift;
+	my $path   = shift;
+	my %opt    = (-tile => 1, @_);
 
 	# create the megawidget
 	my $self = $class->new($path)->_parent->new_ttk__frame(-name => $path);
@@ -59,6 +67,7 @@ sub _Populate {
 
 	# initialize instance data
 	my $data = $self->_data();
+	$data->{-tile}           = $tile_available && delete $opt{-tile};
 	$data->{-textwidget}     = delete $opt{-textwidget};
 	$data->{-highlightcolor} = delete $opt{-highlightcolor} || '#80FF80';
 	$self->_set_hightlightcolor();
@@ -69,52 +78,48 @@ sub _Populate {
 	$data->{regex} = 0;      # regular expression search
 	$data->{count} = 0;      # number of chars in found string
 
-
 	# populate the megawidget...
 
-	$self->new_ttk__button(
+	$self->_button(
 		-text      => 'Close',
 		-image     => 'close16',
 		-takefocus => 0,
-		-style     => 'Toolbutton',
 		-command   => [\&hide, $self],
 	)->g_pack(-side => 'left', -anchor => 'w');
 
-	$self->new_ttk__label(
+	$self->_label(
 		-name => 'lab',
 		-text => 'Find:',
 	)->g_pack(-side => 'left', -anchor => 'w');
 
-	$self->new_ttk__entry(
+	$self->_entry(
 		-name            => 'e',
 		-textvariable    => \$data->{what},
 		-validate        => 'key',
 		-validatecommand => [\&_find, Tkx::Ev('%P'), $self, 'first'],
 	)->g_pack(-side => 'left', -anchor => 'w');
 
-	$self->new_ttk__button(
+	$self->_button(
 		-text      => 'Next',
 		-image     => 'go-down16',
 		-takefocus => 0,
-		-style     => 'Toolbutton',
 		-command   => [\&next, $self],
 	)->g_pack(-side => 'left', -anchor => 'w');
 
-	$self->new_ttk__button(
+	$self->_button(
 		-text      => 'Previous',
 		-image     => 'go-up16',
 		-takefocus => 0,
-		-style     => 'Toolbutton',
 		-command   => [\&previous, $self],
 	)->g_pack(-side => 'left', -anchor => 'w');
 
-	$self->new_ttk__checkbutton(
+	$self->_checkbutton(
 		-text      => 'Match Case',
 		-underline => 6,
 		-variable  => \$data->{case}
 	)->g_pack(-side => 'left', -anchor => 'w');
 
-	$self->new_ttk__checkbutton(
+	$self->_checkbutton(
 		-text      => 'Regular Expression',
 		-underline => 8,
 		-variable  => \$data->{regex},
@@ -124,6 +129,36 @@ sub _Populate {
 	Tkx::bind("$self.e", '<Alt-e>',      sub { $data->{regex} = ! $data->{regex} } );
 
 	return $self;
+}
+
+
+sub _button {
+	my $self = shift;
+
+	return $self->_data->{-tile}
+		? $self->new_ttk__button(-style => 'Toolbutton', @_)
+		: $self->new_button(-relief => 'flat', @_);
+}
+
+sub _label {
+	my $self = shift;
+	return $self->_data->{-tile}
+		? $self->new_ttk__label(@_)
+		: $self->new_label(@_);
+}
+
+sub _entry {
+	my $self = shift;
+	return $self->_data->{-tile}
+		? $self->new_ttk__entry(@_)
+		: $self->new_entry(@_);
+}
+
+sub _checkbutton {
+	my $self = shift;
+	return $self->_data->{-tile}
+		? $self->new_ttk__checkbutton(@_)
+		: $self->new_checkbutton(@_);
 }
 
 
@@ -363,7 +398,6 @@ go-up16:png:16:16:iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfA
 go-up16:gif89:16:16:R0lGODlhEAAQAOYAANnZ2Tt1BDpzBFeJKFaJJkF5D6fKh6LHfkF5Djp0BJa9cprFcpXCaoazWzt0BHilTrDSkX20SHaxP2qcO1eKKLvXoIy9X4C2TXqzRFyiGprEcU+EHUB4DbfUnKDJeou+Woa8UXS0OFOjCGyvLJfDbj53CqHEgLXVl5bFaZHFYIvDVmawHVmsC1mrC4XBTYS0VX+pVsffsKDLd5rKbJbKY4HBQ16zDV+1DV+0DV+yD5vOamecNViLKMrgtdDlvM7luMvls5fNY2i6GWS8D2W+EK/cg67bgqzZgqbTe0yEGDx4BMvmsonJS2W9EGnDEWvHErLhhD56BcrlsHjDMWfAEWzIE3HPFbTlhcjkrW29H2a/EGrFEm3JE7PjhMXiqWW2FmO6D2a+EGfBEbDeg8HfparVgavXga3agq3Zgv///////////////////////////////////////////////////////////////////////////////////////////yH5BAEAAAAALAAAAAAQABAAAAfBgACCgwABAYSEhAACAwQChISDAgUGBwgChIQAAgkKCwwNCQKEhA4PEBESDBMJhIMCFBUWFxgZGhsChAACHB0eHyAhIiMkJQKDAgkmJygpKissLS4vAQKCDjAxMjM0NTY3ODk6OwEAAjw9Pj9AQUJDREVGR0hJAgECAgJKS0xNToBPUFECAgIBAAAAAAJSU1RVVlcCgACCg4ICWFlaW1xdAoSEAl5fYGFiYwKEhAJkZWZHZ2gChIQJgAKCgw4AAAAAgQA7
 
 __END__
-# Below is stub documentation for your module. You'd better edit it!
 
 =pod
 
@@ -397,8 +431,7 @@ Tkx::FindBar - Perl Tkx extension for an incremental search toolbar
 Tkx::FindBar is a Tkx megawidget that provides a toolbar for searching
 in a text widget. Using a toolbar for a search UI is much less obtrusive
 than a dialog box. The search is done incrementally (also known as "find
-as you type"). The toolbar may be hidden and shown as needed. It uses
-tiled (themed) widgets to acheive a native appearance.
+as you type"). The toolbar may be hidden and shown as needed.
 
 Tkx::FindBar was inspired by the great find toolbar in Mozilla Firefox.
 
@@ -411,7 +444,15 @@ one).
 
 =head2 C<-highlightcolor =E<gt> I<color>>
 
-Defines the background color used to highlight found text.
+Defines the background color used to highlight found text. The default 
+value is #80FF80.
+
+=head2 C<-tile>
+
+If set to 1 (the default) and the Tk tile package is available, the 
+FindBar will be drawn using themed widgets to acheive a platform native 
+appearance. If set to 0 or tiling is not available the standard widgets 
+will be used instead.
 
 =head1 METHODS
 

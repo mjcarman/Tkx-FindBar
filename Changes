@@ -1,5 +1,8 @@
 Revision history for Perl extension Tkx::FindBar.
 
+0.03  8/3/2008 7:12:02 PM
+	- Degrade gracefully to use standard widgets if tile is not available.
+
 0.02  8/2/2008 10:56:59 PM
 	- Add support for grid()
 	- Make test suite BAIL_OUT if dependencies (tile) not met.

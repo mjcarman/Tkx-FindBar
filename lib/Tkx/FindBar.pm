@@ -4,9 +4,7 @@ use warnings;
 use Tkx;
 use base qw(Tkx::widget Tkx::MegaConfig);
 
-Tkx::package_require('tile');
-
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 my $tile_available;
 
@@ -62,7 +60,9 @@ sub _Populate {
 	my %opt    = (-tile => 1, @_);
 
 	# create the megawidget
-	my $self = $class->new($path)->_parent->new_ttk__frame(-name => $path);
+	my $self = ($tile_available && $opt{-tile})
+		? $class->new($path)->_parent->new_ttk__frame(-name => $path)
+		: $class->new($path)->_parent->new_frame(-name => $path);
 	$self->_class($class);
 
 	# initialize instance data
@@ -116,22 +116,36 @@ sub _Populate {
 	$self->_checkbutton(
 		-text      => 'Match Case',
 		-underline => 6,
-		-variable  => \$data->{case}
+		-variable  => \$data->{case},
+		-command   => [\&first, $self],
 	)->g_pack(-side => 'left', -anchor => 'w');
 
 	$self->_checkbutton(
 		-text      => 'Regular Expression',
 		-underline => 8,
 		-variable  => \$data->{regex},
+		-command   => [\&first, $self],
 	)->g_pack(-side => 'left', -anchor => 'w');
 
-	Tkx::bind("$self.e", '<Alt-c>',      sub { $data->{case}  = ! $data->{case}  } );
-	Tkx::bind("$self.e", '<Alt-e>',      sub { $data->{regex} = ! $data->{regex} } );
+	Tkx::bind("$self.e", '<Alt-c>', sub {
+		$data->{case} = ! $data->{case};
+		$self->first;
+	});
+
+	Tkx::bind("$self.e", '<Alt-e>', sub {
+		$data->{regex} = ! $data->{regex};
+		$self->first;
+	});
 
 	return $self;
 }
 
 
+#-------------------------------------------------------------------------------
+# Subroutine : _button
+# Purpose    : Create a button widget using the tile setting.
+# Notes      : 
+#-------------------------------------------------------------------------------
 sub _button {
 	my $self = shift;
 
@@ -140,6 +154,12 @@ sub _button {
 		: $self->new_button(-relief => 'flat', @_);
 }
 
+
+#-------------------------------------------------------------------------------
+# Subroutine : _label
+# Purpose    : Create a label widget using the tile setting.
+# Notes      : 
+#-------------------------------------------------------------------------------
 sub _label {
 	my $self = shift;
 	return $self->_data->{-tile}
@@ -147,6 +167,12 @@ sub _label {
 		: $self->new_label(@_);
 }
 
+
+#-------------------------------------------------------------------------------
+# Subroutine : _entry
+# Purpose    : Create an entry widget using the tile setting.
+# Notes      : 
+#-------------------------------------------------------------------------------
 sub _entry {
 	my $self = shift;
 	return $self->_data->{-tile}
@@ -154,6 +180,12 @@ sub _entry {
 		: $self->new_entry(@_);
 }
 
+
+#-------------------------------------------------------------------------------
+# Subroutine : _checkbutton
+# Purpose    : Create a checkbutton widget using the tile setting.
+# Notes      : 
+#-------------------------------------------------------------------------------
 sub _checkbutton {
 	my $self = shift;
 	return $self->_data->{-tile}

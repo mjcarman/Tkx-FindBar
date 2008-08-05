@@ -1,9 +1,13 @@
 Revision history for Perl extension Tkx::FindBar.
 
+0.05  8/4/2008 7:26:55 PM
+	- Don't use INIT block to initialize the class. (This makes it possible to
+	  load the module at runtime.)
+
 0.04  8/3/2008 7:33:06 PM
-	- Reset search when case or regex setting changed.
+	- Reset search (i.e. call first()) when case or regex setting is changed.
 	- Test suite no longer bails out if tile isn't available.
-	- Tile *really* isn't required anymore. :O
+	- Tile *really* isn't required anymore.
 
 0.03  8/3/2008 7:12:02 PM
 	- Degrade gracefully to use standard widgets if tile is not available.

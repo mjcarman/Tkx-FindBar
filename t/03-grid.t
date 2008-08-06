@@ -10,7 +10,7 @@ $mw->g_wm_title('Tkx::FindBar grid() tests');
 my $findbar = $mw->new_tkx_FindBar();
 
 my @label = map {
-	$mw->new_ttk__label(
+	$mw->new_label(
 		-text   => $_,
 		-width  => 5,
 		-anchor => 'center',

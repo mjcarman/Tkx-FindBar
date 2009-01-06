@@ -1,10 +1,11 @@
 package Tkx::FindBar;
 use strict;
 use warnings;
+use Carp qw'carp';
 use Tkx;
 use base qw(Tkx::widget Tkx::MegaConfig);
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 __PACKAGE__->_Mega("tkx_FindBar");
 __PACKAGE__->_Config(
@@ -368,6 +369,28 @@ sub previous { _find($_[0]->_data->{what}, $_[0], 'prev' ) }
 
 
 #-------------------------------------------------------------------------------
+# Method  : add_bindings
+# Purpose : Sugar for bulk creation of bindings
+# Notes   : 
+#-------------------------------------------------------------------------------
+sub add_bindings {
+	my $self    = shift;
+	my $widget  = shift;
+	my %binding = @_;
+
+	while (my ($event, $method) = each %binding) {
+		if (exists &$method) {
+			Tkx::bind($widget, $event, sub { $self->$method });
+		}
+		else {
+			my $class = ref $self;
+			carp "Class '$class' does not have a method named '$method'";
+		}
+	}
+}
+
+
+#-------------------------------------------------------------------------------
 # Subroutine : _find
 # Purpose    : Search in text widget
 # Notes      : Private sub, NOT A METHOD because the text must be the first arg
@@ -429,7 +452,6 @@ sub _find {
 
 1;
 
-
 __DATA__
 #name:format:height:width:data
 close16:png:16:16:iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA3XAAAN1wFCKJt4AAAAB3RJTUUH1QwDARgOPQO6ugAAAZNJREFUOMudk71SGzEUhT/J9hriPEDGBTCTN2B4Axc0FHQ01KFPCbUzjtN7Jn3SU/IuTIoQ90S7lvfPq5Nis2vIuonV6M5I57v3niuZ2Xz6AfjKHsta+5HZfKp912w+Vb+hLZfL/8o+Ho8BaAEqinovSyhLqCoUAkgYa6HXg34f0+/DYNCCtgDva3FRQFliJIwECIwFa1BvUIuH0Q7AagVZBkXB8fk5AE/39wAcXV4C8OvhAUURGr0hhPAPYL0Gv8LmRUtvhO2dOIYowlqznUQTmDSF3zFyjp+LRce0p8UC4xzEMawzqqp6XQFpipK4biPPOwA9P6MowhweYkZv2xbaCvAekgQ5x8ntbQdwfHeHnCM4h9ae/G+SrQdZSogTzNq3oh/X14B4/+07AME5zGYDabpjCmmG/AolCY9XVyhN63ECjxcXmIMDzGgEIaAs2wHI8/otrGpI8L72QsI0vUtYa18BWg+Gp6eogUkgIYk6VHMAEsOzs24F7yYTmEw65jVuA2w2mzZ+aeLN5y+f9vrOwM0fpocVsnebVZ4AAAAASUVORK5CYII=
@@ -460,19 +482,21 @@ Tkx::FindBar - Perl Tkx extension for an incremental search toolbar
    $findbar->hide();  # remove until requested by user
 
    # Bindings to display and hide toolbar and navigate matches.
-   $mw->g_bind('<Control-f>',  sub { $findbar->show()     } );
-   $mw->g_bind('<Escape>',     sub { $findbar->hide()     } );
-   $mw->g_bind('<F3>',         sub { $findbar->next()     } );
-   $mw->g_bind('<Control-F3>', sub { $findbar->previous() } );
+   $findbar->add_bindings($mw,
+      '<Control-f>'  => 'show',
+      '<Escape>'     => 'hide',
+      '<F3>'         => 'next',
+      '<Control-F3>' => 'previous',
+   );
 
    Tkx::MainLoop();
 
 =head1 DESCRIPTION
 
-Tkx::FindBar is a Tkx megawidget that provides a toolbar for searching
-in a text widget. Using a toolbar for a search UI is much less obtrusive
-than a dialog box. The search is done incrementally (also known as "find
-as you type"). The toolbar may be hidden and shown as needed.
+Tkx::FindBar is a Tkx megawidget that provides a toolbar for searching in a text 
+widget. Using a toolbar for a search UI is much less obtrusive than a dialog 
+box. The search is done incrementally (also known as "find as you type"). The 
+toolbar may be hidden and shown as needed.
 
 Tkx::FindBar was inspired by the great find toolbar in Mozilla Firefox.
 
@@ -490,10 +514,9 @@ value is #80FF80.
 
 =head2 C<-tile>
 
-If set to 1 (the default) and the Tk tile package is available, the 
-FindBar will be drawn using themed widgets to acheive a platform native 
-appearance. If set to 0 or tiling is not available the standard widgets 
-will be used instead.
+If set to 1 (the default) and the Tk tile package is available, the FindBar will 
+be drawn using themed widgets to acheive a platform native appearance. If set to 
+0 or tiling is not available the standard widgets will be used instead.
 
 =head1 METHODS
 
@@ -503,7 +526,7 @@ Hides the FindBar widget.
 
 =head2 C<show>
 
-Shows the FindBar widget.
+Shows the FindBar widget if hidden and focuses the entry subwidget.
 
 =head2 C<first>
 
@@ -517,24 +540,65 @@ Finds the next instance of the search text. (Searches forwards.)
 
 Finds the previous instance of the search text. (Searches backwards.)
 
-=head1 BUGS
+=head2 C<add_bindings>
 
-The C<show> and C<hide> methods don't work with the L<place> geometry
+Shortcut method for bulk addition of bindings (e.g. to create keygboard 
+shortcuts). The first argument is the widget to bind to. The remaining arguments 
+are bind tag/method name pairs. Multiple tags may be bound to the same method.
+
+=head1 LIMITATIONS
+
+The C<show> and C<hide> methods don't work with the place geometry
 manager. (The pack and grid geometry managers are supported.)
 
 There's no support for configuring subwidgets.
 
+=head1 BUGS
+
+Please report any bugs or feature requests to C<bug-tkx-findbar at rt.cpan.org>, 
+or through the web interface at 
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Tkx-FindBar>. I will be 
+notified, and then you'll automatically be notified of progress on your bug as I 
+make changes.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Tkx::FindBar
+
+You can also look for information at:
+
+=over 4
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Tkx-FindBar>
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Tkx-FindBar>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Tkx-FindBar>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Tkx-FindBar>
+
+=back
+
 =head1 AUTHOR
 
-Michael Carman, E<lt>mjcarman@cpan.orgE<gt>
+Michael J. Carman, C<< <mjcarman at cpan.org> >>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2008 by Michael Carman
+Copyright (C) 2008-2009 by Michael J. Carman
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.10.0 or,
-at your option, any later version of Perl 5 you may have available.
+it under the same terms as Perl itself.
 
 The icons are Copyright (C) the Tango Desktop Project 
 [L<http://tango.freedesktop.org/Tango_Desktop_Project>]. They are used 

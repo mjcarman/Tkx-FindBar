@@ -1,0 +1,88 @@
+--------------------------------------------------------------------------------
+TODO
+--------------------------------------------------------------------------------
+
+* Add configuration options for how to display invalid regexen and not found.
+* Add show/hide support for place geometry manager.
+* Change names of button images to avoid potential collisions.
+* Non-hidable mode where show() just focuses, hide() just clears 
+  highlight, and the close button isn't displayed.
+? Allow users to override builtin icons.
+* Allow users to override text (localization).
+* Add button tooltips.
+~ Write tests.
+* configure() and cget() should return standard format for -textwidget 
+  and -hightlightcolor (with no values)
+
+--------------------------------------------------------------------------------
+DONE
+--------------------------------------------------------------------------------
+
+x Is it possible to detect that we've been packed and with what options?
+	Yes, use pack('info', widget) to get the info and pack('slaves', master) to
+	determine the pack order.
+x Add option for highlight color.
+x Tag textwidget to set highlight color so user doesn't have to.
+x Allow user to pack normally, then auto-hide?
+	Hiding isn't automatic, but the user can pack normally then call hide()
+x Add documentation
+x Try using -validatecommand instead of binding to KeyRelease.
+x Added support for grid geometry manager
+x _find() shouldn't do bare return when $where undefined.
+x Use standard widgets when tile not available.
+x Reset search (first) when case or regex settings are changed.
+x The INIT block breaks using "eval { require Tkx::FindBar }"
+x _ClassInit() sub doesn't get called automatically.
+x Create a simple method to set all the useful mainwindow bindings.
+
+--------------------------------------------------------------------------------
+TEST THOUGHTS
+--------------------------------------------------------------------------------
+x hide() removes findbar
+x show() restores findbar to original position
+	* even if parent not the master
+* no -textwidget specified
+	* no runtime errors
+* specify -textwidget at creation
+x specify/change -textwidget after creation
+	x which widget is searched
+	x highlighting is seamless
+* no -highlightcolor specified
+	* default used
+* specify -highlightcolor at creation
+* change  -highlightcolor after creation
+	* specified color used
+* typing searches incrementally and from beginning
+x next() searches forwards
+x previous() searches backwards
+~ not found repsonse
+* invalid regex response
+x case sensitive searches work
+x regex searches work
+* key binding for case senstivity works
+* key binding for regex search works
+x no highlight when hidden
+x show() should do first() search
+	? Restore the prior hightlight?
+		Probably not as we can't know whether or not the text has changed.
+
+* "X" button hides findbar
+* "^" button searches backwards
+* "v" button searches forwards
+* "Match Case" checkbox controls case sensitivity
+* "Regular Expression" checkbox controls regex searching
+
+
+
+--------------------------------------------------------------------------------
+NOTES
+--------------------------------------------------------------------------------
+
+This can be used to distinguish between configure() and cget() in the 
+_config_* methods, but this shouldn't be necessary. configure() only 
+seems to return 0 no matter what anyway.
+
+	my $callsub = (caller(1))[3];
+	if    ($callsub =~ /configure$/) { print "configure!\n" }
+	elsif ($callsub =~ /cget$/)      { print "cget!\n"      }
+	else                             { print "???!\n"       }

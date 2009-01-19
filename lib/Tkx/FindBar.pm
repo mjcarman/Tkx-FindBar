@@ -5,7 +5,7 @@ use Carp qw'carp';
 use Tkx;
 use base qw(Tkx::widget Tkx::MegaConfig);
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 __PACKAGE__->_Mega("tkx_FindBar");
 __PACKAGE__->_Config(
@@ -28,11 +28,21 @@ my %showsub = (
 	place => \&_show_place,
 );
 
+# Create aliases using the 'm_' prefix for public methods. Defining the 'm_*'
+# names makes method delegation from other megawidgets work. Defining both
+# names bypasses Tkx::widget::AUTOLOAD and any warnings about using an
+# inherited AUTOLOAD.
+*m_add_bindings = \&add_bindings;
+*m_show         = \&show;
+*m_hide         = \&hide;
+*m_first        = \&first;
+*m_next         = \&next;
+*m_previous     = \&previous;
 
 #-------------------------------------------------------------------------------
 # Subroutine : _ClassInit
 # Purpose    : Perform class initialization.
-# Notes      : 
+# Notes      :
 #-------------------------------------------------------------------------------
 sub _ClassInit {
 	# determine availability of themed widgets
@@ -67,7 +77,6 @@ sub _Populate {
 	my $path   = shift;
 	my %opt    = (-tile => 1, @_);
 
-	# This doesn't get called automatically. Don't know who's to blame.
 	_ClassInit() unless $initialized;
 
 	# create the megawidget
@@ -155,7 +164,7 @@ sub _Populate {
 #-------------------------------------------------------------------------------
 # Subroutine : _button
 # Purpose    : Create a button widget using the tile setting.
-# Notes      : 
+# Notes      :
 #-------------------------------------------------------------------------------
 sub _button {
 	my $self = shift;
@@ -169,7 +178,7 @@ sub _button {
 #-------------------------------------------------------------------------------
 # Subroutine : _label
 # Purpose    : Create a label widget using the tile setting.
-# Notes      : 
+# Notes      :
 #-------------------------------------------------------------------------------
 sub _label {
 	my $self = shift;
@@ -182,7 +191,7 @@ sub _label {
 #-------------------------------------------------------------------------------
 # Subroutine : _entry
 # Purpose    : Create an entry widget using the tile setting.
-# Notes      : 
+# Notes      :
 #-------------------------------------------------------------------------------
 sub _entry {
 	my $self = shift;
@@ -195,7 +204,7 @@ sub _entry {
 #-------------------------------------------------------------------------------
 # Subroutine : _checkbutton
 # Purpose    : Create a checkbutton widget using the tile setting.
-# Notes      : 
+# Notes      :
 #-------------------------------------------------------------------------------
 sub _checkbutton {
 	my $self = shift;
@@ -266,7 +275,7 @@ sub _set_hightlightcolor {
 #-------------------------------------------------------------------------------
 # Method  : _geometry_manager
 # Purpose : Determine the geometry manager used to manage widget
-# Notes   : 
+# Notes   :
 #-------------------------------------------------------------------------------
 sub _geometry_manager {
 	my $self = shift;
@@ -367,11 +376,10 @@ sub first    { _find($_[0]->_data->{what}, $_[0], 'first') }
 sub next     { _find($_[0]->_data->{what}, $_[0], 'next' ) }
 sub previous { _find($_[0]->_data->{what}, $_[0], 'prev' ) }
 
-
 #-------------------------------------------------------------------------------
 # Method  : add_bindings
 # Purpose : Sugar for bulk creation of bindings
-# Notes   : 
+# Notes   :
 #-------------------------------------------------------------------------------
 sub add_bindings {
 	my $self    = shift;
@@ -449,7 +457,6 @@ sub _find {
 	return 1;
 }
 
-
 1;
 
 __DATA__
@@ -493,9 +500,9 @@ Tkx::FindBar - Perl Tkx extension for an incremental search toolbar
 
 =head1 DESCRIPTION
 
-Tkx::FindBar is a Tkx megawidget that provides a toolbar for searching in a text 
-widget. Using a toolbar for a search UI is much less obtrusive than a dialog 
-box. The search is done incrementally (also known as "find as you type"). The 
+Tkx::FindBar is a Tkx megawidget that provides a toolbar for searching in a text
+widget. Using a toolbar for a search UI is much less obtrusive than a dialog
+box. The search is done incrementally (also known as "find as you type"). The
 toolbar may be hidden and shown as needed.
 
 Tkx::FindBar was inspired by the great find toolbar in Mozilla Firefox.
@@ -504,18 +511,18 @@ Tkx::FindBar was inspired by the great find toolbar in Mozilla Firefox.
 
 =head2 C<-textwidget =E<gt> I<widget>>
 
-Defines the widget to search in. This must be a text widget (or act like 
+Defines the widget to search in. This must be a text widget (or act like
 one).
 
 =head2 C<-highlightcolor =E<gt> I<color>>
 
-Defines the background color used to highlight found text. The default 
+Defines the background color used to highlight found text. The default
 value is #80FF80.
 
 =head2 C<-tile>
 
-If set to 1 (the default) and the Tk tile package is available, the FindBar will 
-be drawn using themed widgets to acheive a platform native appearance. If set to 
+If set to 1 (the default) and the Tk tile package is available, the FindBar will
+be drawn using themed widgets to acheive a platform native appearance. If set to
 0 or tiling is not available the standard widgets will be used instead.
 
 =head1 METHODS
@@ -542,8 +549,8 @@ Finds the previous instance of the search text. (Searches backwards.)
 
 =head2 C<add_bindings>
 
-Shortcut method for bulk addition of bindings (e.g. to create keygboard 
-shortcuts). The first argument is the widget to bind to. The remaining arguments 
+Shortcut method for bulk addition of bindings (e.g. to create keygboard
+shortcuts). The first argument is the widget to bind to. The remaining arguments
 are bind tag/method name pairs. Multiple tags may be bound to the same method.
 
 =head1 LIMITATIONS
@@ -555,10 +562,10 @@ There's no support for configuring subwidgets.
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-tkx-findbar at rt.cpan.org>, 
-or through the web interface at 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Tkx-FindBar>. I will be 
-notified, and then you'll automatically be notified of progress on your bug as I 
+Please report any bugs or feature requests to C<bug-tkx-findbar at rt.cpan.org>,
+or through the web interface at
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Tkx-FindBar>. I will be
+notified, and then you'll automatically be notified of progress on your bug as I
 make changes.
 
 =head1 SUPPORT
@@ -600,11 +607,11 @@ Copyright (C) 2008-2009 by Michael J. Carman
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
-The icons are Copyright (C) the Tango Desktop Project 
-[L<http://tango.freedesktop.org/Tango_Desktop_Project>]. They are used 
-under the terms of the Creative Commons Attribution-Share Alike License 
-[L<http://creativecommons.org/licenses/by-sa/2.5/>]. They're a heck of a 
-lot better than anything I could come up with, so I'm grateful for being 
+The icons are Copyright (C) the Tango Desktop Project
+[L<http://tango.freedesktop.org/Tango_Desktop_Project>]. They are used
+under the terms of the Creative Commons Attribution-Share Alike License
+[L<http://creativecommons.org/licenses/by-sa/2.5/>]. They're a heck of a
+lot better than anything I could come up with, so I'm grateful for being
 able to use them. Thanks, guys!
 
 =cut

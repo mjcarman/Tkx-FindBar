@@ -5,7 +5,7 @@ use Carp qw'carp';
 use Tkx;
 use base qw(Tkx::widget Tkx::MegaConfig);
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 __PACKAGE__->_Mega("tkx_FindBar");
 __PACKAGE__->_Config(
@@ -81,8 +81,8 @@ sub _Populate {
 
 	# create the megawidget
 	my $self = ($tile_available && $opt{-tile})
-		? $class->new($path)->_parent->new_ttk__frame(-name => $path)
-		: $class->new($path)->_parent->new_frame(-name => $path);
+		? $class->new($path)->_parent->new_ttk__frame(-name => $path, -class => 'Tkx_FindBar')
+		: $class->new($path)->_parent->new_frame(-name => $path, -class => 'Tkx_FindBar');
 	$self->_class($class);
 
 	# initialize instance data

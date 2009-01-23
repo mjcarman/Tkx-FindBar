@@ -1,5 +1,9 @@
 Revision history for Tkx-FindBar
 
+0.09 (2009-01-23)
+    - Set megawidget class to 'Tkx_FindBar' in order to support
+      class-specific options and bindings.
+
 0.08 (2009-01-19)
     - Added 'm_*' aliases for public methods to support delgation from
       other megawidgets. (Requires Tkx v1.06+)

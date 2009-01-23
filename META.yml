@@ -1,6 +1,6 @@
 ---
 name: Tkx-FindBar
-version: 0.08
+version: 0.09
 author:
   - 'Michael J. Carman <mjcarman@cpan.org>'
 abstract: Perl Tkx extension for an incremental search toolbar
@@ -15,7 +15,7 @@ build_requires:
 provides:
   Tkx::FindBar:
     file: lib/Tkx/FindBar.pm
-    version: 0.08
+    version: 0.09
 generated_by: Module::Build version 0.31
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
